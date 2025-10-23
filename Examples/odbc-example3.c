@@ -34,6 +34,7 @@ int main(void) {
 
         SQLExecDirect(stmt, (SQLCHAR*) query, SQL_NTS);
 
+                        /*cambiar columnas*/
         SQLBindCol(stmt, 1, SQL_C_CHAR, y, sizeof(y), NULL);
 
         /* Loop through the rows in the result-set */
