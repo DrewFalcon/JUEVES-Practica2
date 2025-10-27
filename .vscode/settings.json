@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "lmenu.h": "c",
+        "loop.h": "c",
+        "windows.h": "c"
+    }
+}
