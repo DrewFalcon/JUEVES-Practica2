@@ -1,7 +1,9 @@
 /*
 * Created by roberto on 3/5/21.
 */
+#include <stdio.h>
 #include "search.h"
+#define MAX_CHAR 1000
 void    results_search(char * from, char *to,
                        int * n_choices, char *** choices,
                        int max_length,
@@ -18,25 +20,44 @@ void    results_search(char * from, char *to,
 {
     int i=0;
     int t=0;
-    /* 10 commandments from King Jorge Bible */
-    char *query_result_set[]={
-            "1. Thou shalt have no other gods before me.",
-            "2. Thou shalt not make unto thee any graven image,"
-            " or any likeness of any thing that is in heaven above,"
-            " or that is in the earth beneath, or that is in the water "
-            "under the earth.",
-            "3. Remember the sabbath day, to keep it holy.",
-            "4. Thou shalt not take the name of the Lord thy God in vain.",
-            "5. Honour thy father and thy mother.",
-            "6. Thou shalt not kill.",
-            "7. Thou shalt not commit adultery.",
-            "8. Thou shalt not steal.",
-            "9. Thou shalt not bear false witness against thy neighbor.",
-            "10. Thou shalt not covet thy neighbour's house, thou shalt not"
-            " covet thy neighbour's wife, nor his manservant, "
-            "nor his maidservant, nor his ox, nor his ass, "
-            "nor any thing that is thy neighbour's."
-    };
+    int count = 0;
+    int z = 0;
+    FILE* f = NULL;
+    char stream[MAX_CHAR];
+    char dummy;
+    /* Query Output*/
+    char *query_result_set = NULL;
+
+    /*Abrir fichero con el resultado de la consulta*/
+    f = fopen_choicesn("aux.log", "r");
+    if (f == NULL) {
+      return;
+    }
+
+    /*Contar cuantos caracteres tiene el resultado de la consulta*/
+    while (fscanf(f, "%c", &dummy) == 1) {
+      count++;
+    }
+    fclose(f);
+
+    /*Reservar memoria para guardar la solucion a imprimir*/
+    query_result_set = (char*)malloc(sizeof(char) * (count+10));
+    if (query_result_set == NULL) {
+      return;
+    }
+
+    /*Abrir de nuevo el fichero para leer linea a linea*/
+    f = fopen("aux.log", "r");
+    if (f == NULL) {
+      return;
+    }
+
+    /*Ir metiendo linea a linea al string final*/
+    while(fgets(stream, MAX_CHAR -1, f)) {
+      fprintf(stdout, "Linea leida: %s", stream);
+      strcat(query_result_set, stream);
+    }
+
     *n_choices = sizeof(query_result_set) / sizeof(query_result_set[0]);
 
     max_rows = MIN(*n_choices, max_rows);
@@ -45,5 +66,7 @@ void    results_search(char * from, char *to,
         t = MIN(t, max_length);
         strncpy((*choices)[i], query_result_set[i], t);
     }
+
+    fclose(f);
 }
 
