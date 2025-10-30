@@ -39,9 +39,9 @@ EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 od
 
 all : $(EXE)
 
-test01: 
-#	# echo test01: "please insert here a short description" | tee test01.log
-#	# cat test01.sql | $(PSQL) | tee -a test01.log
+test_search: 
+#	 @echo test01: "please insert here a short description" | tee test01.log
+#	 @cat test01.sql | $(PSQL) | tee -a test01.log
 	
 clean :
 	rm -f *.o core $(EXE)

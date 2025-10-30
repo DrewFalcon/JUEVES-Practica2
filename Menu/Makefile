@@ -1,6 +1,7 @@
 CC = gcc -g
 CFLAGS = -Wall -Wextra -pedantic -ansi
 LDLIBS = -lodbc -lcurses -lpanel -lmenu -lform
+PSQL = psql
 
 # recompile if this header changes
 HEADERS = odbc.h bpass.h  lmenu.h search.h windows.h loop.h
@@ -28,3 +29,6 @@ run:
 valgrind:
 	valgrind --leak-check=full ./$(EXE)
 
+test_search:
+	@echo search_sql_test: "please insert here a short description" | tee search_sql_test.log
+	@cat search_sql_test.sql | $(PSQL) | tee -a search_sql_test.log
