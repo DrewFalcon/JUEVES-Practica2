@@ -1,6 +1,6 @@
 
 WITH RECURSIVE flight_paths AS (
-    -- Vuelos directos (Caso base)
+    
     SELECT 
         f.flight_id, f.departure_airport, f.arrival_airport, f.scheduled_departure, f.scheduled_arrival,
         ARRAY[f.flight_id] AS flight_chain, (f.scheduled_arrival - f.scheduled_departure) AS total_duration, 1 AS connection_count
@@ -10,7 +10,7 @@ WITH RECURSIVE flight_paths AS (
     
     UNION ALL
     
-    -- Conexiones (Caso recursivo)
+    
     SELECT 
         f2.flight_id,
         fp.departure_airport AS original_departure,
@@ -27,11 +27,11 @@ WITH RECURSIVE flight_paths AS (
     JOIN flights f2 ON f2.flight_id = tf2.flight_id
     WHERE 
         f2.departure_airport = fp.arrival_airport
-        AND f2.scheduled_departure >= fp.scheduled_arrival  -- Después de la llegada anterior
-        AND f2.scheduled_departure <= (fp.scheduled_arrival + INTERVAL '24 hours')  -- Dentro de 24 horas
+        AND f2.scheduled_departure >= fp.scheduled_arrival 
+        AND f2.scheduled_departure <= (fp.scheduled_arrival + INTERVAL '24 hours') 
         AND f2.flight_id <> ALL(fp.flight_chain)
         AND (f2.scheduled_arrival - fp.scheduled_departure) < INTERVAL '24 hours'
-        AND fp.connection_count < 3  -- Límite de conexiones
+        AND fp.connection_count < 3  
 )
 SELECT DISTINCT
     fp.flight_chain,
