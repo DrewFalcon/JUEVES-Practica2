@@ -1,28 +1,16 @@
-/*
- * Created by roberto on 3/5/21.
- */
 #include "search.h"
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sql.h>
 #include <sqlext.h>
 #include "odbc.h"
-#include <stdio.h>
 
 #define MAX_STRING 1000
+
 void results_search(char* from, char* to, int* n_choices, char*** choices, int max_length, int max_rows)
-/**here you need to do your query and fill the choices array of strings
- *
- * @param from form field from
- * @param to form field to
- * @param n_choices fill this with the number of results
- * @param choices fill this with the actual results
- * @param max_length output win maximum width
- * @param max_rows output win maximum number of rows
- */
 {
-    int i=0, j=0;
+    int i=0;
     int t=0;
     int size, len;
     char **query_result_set = malloc(max_rows * sizeof(char*));
@@ -40,6 +28,8 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     FILE *log = NULL;
     FILE *file = NULL;
     FILE *result_log = NULL;
+
+    // INICIO: Diagnóstico
     log = fopen("debug_search.log", "w");
     if (!log) {
         fprintf(stderr, "ERROR: No se pudo crear debug_search.log\n");
@@ -51,7 +41,12 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         fprintf(log, "max_rows: %d\n", max_rows);
         fflush(log);
     }
-  /* Verificar parámetros de entrada*/
+    // FIN Diagnóstico
+
+    // Inicializar n_choices
+    *n_choices = 0;
+
+    // Verificar parámetros de entrada
     if (!from || !to) {
         if (log) {
             fprintf(log, "ERROR: Parámetros from o to son NULL\n");
@@ -61,15 +56,16 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         return;
     }
 
+    // Leer archivo SQL
     file = fopen("search.sql", "r");
     if (file == NULL) {
-         if (log) {
+        if (log) {
             fprintf(log, "ERROR: No se pudo abrir search.sql\n");
             fclose(log);
         }
         free(query_result_set);
-      *n_choices = 0;  
-      return;
+        *n_choices = 0;
+        return;
     }
 
     fseek(file, 0, SEEK_END);
@@ -101,7 +97,6 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         free(select);
         fclose(file);
         free(query_result_set);
-        fprintf(stderr, "SEARCH: leyendo el archivo sql\n");
         *n_choices = 0;
         return;
     }
@@ -114,10 +109,9 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         fflush(log);
     }
 
-    /* Conexión */
+    // Conexión a BD
     ret = odbc_connect(&env, &dbc);
     if (!SQL_SUCCEEDED(ret)) {
-        fprintf(stderr, "SEARCH: conexión fallida.\n");
         if (log) {
             fprintf(log, "ERROR: Conexión ODBC fallida\n");
             fclose(log);
@@ -133,7 +127,7 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         fflush(log);
     }
 
-    /*Preparar statement*/
+    // Preparar statement
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (!SQL_SUCCEEDED(ret)) {
         if (log) {
@@ -147,6 +141,7 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         return;
     }
 
+    // Preparar consulta
     ret = SQLPrepare(stmt, (SQLCHAR *)select, SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         if (log) {
@@ -159,8 +154,8 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         free(query_result_set);
         *n_choices = 0;
         return;
-    }  
-    
+    }
+
     free(select);
 
 
@@ -208,6 +203,7 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     }*/
 
     /*  Leer resultados y guardarlos en query_result_set */
+    // Procesar resultados
     i = 0;
     while (i < max_rows && SQL_SUCCEEDED(SQLFetch(stmt))) {
         /* Verificar si hay datos NULL*/
@@ -215,14 +211,15 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         if (dep_time_ind == SQL_NULL_DATA) strcpy((char*)dep_time, "NULL");
         if (arrival_time_ind == SQL_NULL_DATA) strcpy((char*)arrival_time, "NULL");
 
+        // Usar sprintf temporalmente para evitar problemas con snprintf
         sprintf(buffer, "%s | %s -> %s", (char*)flight_id, (char*)dep_time, (char*)arrival_time);
 
         len = strlen(buffer);
         query_result_set[i] = malloc(len + 1);
         if (query_result_set[i] != NULL) {
             strcpy(query_result_set[i], buffer);
-
-        if (log) {
+            
+            if (log) {
                 fprintf(log, "Fila %d: %s\n", i, query_result_set[i]);
                 fflush(log);
             }
@@ -239,10 +236,10 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         fflush(log);
     }
 
-    /* Escribir resultados en returnSQL.log*/
+    // Escribir resultados en returnSQL.log
     result_log = fopen("returnSQL.log", "w");
     if (result_log) {
-        for (j = 0; j < *n_choices; j++) {
+        for (int j = 0; j < *n_choices; j++) {
             fprintf(result_log, "%s\n", query_result_set[j]);
         }
         fclose(result_log);
@@ -258,25 +255,22 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
 
     max_rows = MIN(*n_choices, max_rows);
 
-      
-    /*for (i = 0; i < max_rows; i++) {
-        fprintf(log, "%s\n", query_result_set[i]);
-    }*/
-    
-    for (i = 0 ; i < max_rows ; i++) {
+
+    for (i = 0; i < *n_choices && i < max_rows; i++) {
         t = strlen(query_result_set[i]) + 1;
-        t = MIN(t, max_length);
+        t = (t < max_length) ? t : max_length;
         strncpy((*choices)[i], query_result_set[i], t);
+        (*choices)[i][t-1] = '\0'; // Asegurar terminación nula
     }
 
-
+    
     /* liberar query_result_set */
     for (i = 0; i < *n_choices; i++) {
         free(query_result_set[i]);
     }
     free(query_result_set);
 
- if (log) {
+    if (log) {
         fprintf(log, "=== FIN DEBUG ===\n");
         fclose(log);
     }
