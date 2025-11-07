@@ -5,7 +5,7 @@ WITH RECURSIVE flight_paths AS (
         f.flight_id, f.departure_airport, f.arrival_airport, f.scheduled_departure, f.scheduled_arrival,
         ARRAY[f.flight_id] AS flight_chain, (f.scheduled_arrival - f.scheduled_departure) AS total_duration, 1 AS connection_count
     FROM flights f
-    WHERE f.departure_airport = 'UUA'
+    WHERE f.departure_airport = ?
     AND (f.scheduled_arrival - f.scheduled_departure) < INTERVAL '24 hours'
     
     UNION ALL
@@ -43,5 +43,5 @@ SELECT DISTINCT
     fp.connection_count
 FROM flight_paths fp
 WHERE 
-    fp.arrival_airport = 'SVO'
+    fp.arrival_airport = ?
 ORDER BY fp.total_duration;
