@@ -31,7 +31,7 @@ void trim_whitespace(char *str) {
 }
 
 
-void results_search(char* from, char* to, int* n_choices, char*** choices, int max_length, int max_rows)
+void results_search(char* from, char* to, char *date, int* n_choices, char*** choices, int max_length, int max_rows)
 /**here you need to do your query and fill the choices array of strings
  *
  * @param from form field from
@@ -61,11 +61,11 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
 
     SQLCHAR flight_chain[256], original_departure[16], final_arrival[16];
     SQLCHAR original_departure_time[64], final_arrival_time[64];
-    SQLCHAR total_duration[64], connection_count[16];
+    SQLCHAR total_duration[64], connection_count[16], min_free_seats[16];
 
     SQLLEN flight_chain_ind, original_departure_ind, final_arrival_ind;
     SQLLEN original_departure_time_ind, final_arrival_time_ind;
-    SQLLEN total_duration_ind, connection_count_ind;
+    SQLLEN total_duration_ind, connection_count_ind, min_free_seats_ind;
 
     FILE *log = NULL;
     FILE *file = NULL;
@@ -82,7 +82,7 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         fflush(log);
     }
   /* Verificar parámetros de entrada*/
-    if (!from || !to) {
+    if (!from || !to || !date) {
         if (log) {
             fprintf(log, "ERROR: Parámetros from o to son NULL\n");
             fclose(log);
@@ -93,11 +93,13 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
 
     trim_whitespace(from);
     trim_whitespace(to);
+    trim_whitespace(date);
 
     if (log) {
         fprintf(log, "Parámetros después de trim:\n");
         fprintf(log, "from: '%s'\n", from);
         fprintf(log, "to: '%s'\n", to);
+        fprintf(log, "date: '%s'\n", date);        
         fflush(log);
     }
 
@@ -208,7 +210,8 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     /* Meter parámetros */
     SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(from), 0, from, 0, NULL);
     SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(to), 0, to, 0, NULL);
-    /*SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 0, 0, date, 0, NULL);*/
+    SQLBindParameter(stmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, strlen(date), 0, date, 0, NULL);
+    
 
 
     if (log) {
@@ -255,6 +258,7 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     SQLBindCol(stmt, 5, SQL_C_CHAR, final_arrival_time, sizeof(final_arrival_time), &final_arrival_time_ind);
     SQLBindCol(stmt, 6, SQL_C_CHAR, total_duration, sizeof(total_duration), &total_duration_ind);
     SQLBindCol(stmt, 7, SQL_C_CHAR, connection_count, sizeof(connection_count), &connection_count_ind);
+    SQLBindCol(stmt, 8, SQL_C_CHAR, min_free_seats, sizeof(min_free_seats), &min_free_seats_ind);
 
 
     /* Leer resultados y construir texto para out_window
@@ -276,14 +280,15 @@ while (i < max_rows && SQL_SUCCEEDED(SQLFetch(stmt))) {
     if (connection_count_ind == SQL_NULL_DATA) strcpy((char*)connection_count, "NULL");
 
     /* Formatear la salida con las NUEVAS variables*/
-    sprintf(buffer, "%-15s | %-4s -> %-4s | %-19s | %-19s | %-14s | %s", 
+    sprintf(buffer, "%-12s | %-3s -> %-3s | %-16s | %-16s | %-12s | %-3s | %-3s", 
             (char*)flight_chain,
             (char*)original_departure, 
             (char*)final_arrival,
             (char*)original_departure_time,
             (char*)final_arrival_time,
             (char*)total_duration,
-            (char*)connection_count);
+            (char*)connection_count, 
+            (char*)min_free_seats);
 
     len = strlen(buffer);
     query_result_set[i] = malloc(len + 1);
