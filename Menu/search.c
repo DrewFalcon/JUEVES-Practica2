@@ -8,9 +8,29 @@
 #include <sql.h>
 #include <sqlext.h>
 #include "odbc.h"
-#include <stdio.h>
+#include <ctype.h>
 
 #define MAX_STRING 1000
+
+void trim_whitespace(char *str) {
+    char *end;
+
+    if (str == NULL) return;
+        
+    /* Trim espacios al inicio*/
+    while (isspace((unsigned char)*str)) str++;
+    
+    if (*str == 0) return; /* Solo espacios*/
+    
+    /* Trim espacios al final */
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+    
+    /* Escribe el nuevo null terminator*/
+    end[1] = '\0';
+}
+
+
 void results_search(char* from, char* to, int* n_choices, char*** choices, int max_length, int max_rows)
 /**here you need to do your query and fill the choices array of strings
  *
@@ -33,9 +53,19 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     SQLHSTMT stmt;
     SQLRETURN ret;
 
-    SQLCHAR flight_id[16], dep_time[64], arrival_time[64];
-    SQLLEN flight_id_ind, dep_time_ind, arrival_time_ind;
-    char buffer[256];
+    SQLCHAR sqlstate[6];
+    SQLCHAR message[1024];
+    SQLSMALLINT length;
+    SQLINTEGER native;
+    char buffer[512];
+
+    SQLCHAR flight_chain[256], original_departure[16], final_arrival[16];
+    SQLCHAR original_departure_time[64], final_arrival_time[64];
+    SQLCHAR total_duration[64], connection_count[16];
+
+    SQLLEN flight_chain_ind, original_departure_ind, final_arrival_ind;
+    SQLLEN original_departure_time_ind, final_arrival_time_ind;
+    SQLLEN total_duration_ind, connection_count_ind;
 
     FILE *log = NULL;
     FILE *file = NULL;
@@ -59,6 +89,16 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         }
         free(query_result_set);
         return;
+    }
+
+    trim_whitespace(from);
+    trim_whitespace(to);
+
+    if (log) {
+        fprintf(log, "Parámetros después de trim:\n");
+        fprintf(log, "from: '%s'\n", from);
+        fprintf(log, "to: '%s'\n", to);
+        fflush(log);
     }
 
     file = fopen("search.sql", "r");
@@ -181,6 +221,13 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     if (!SQL_SUCCEEDED(ret)) {
         if (log) {
             fprintf(log, "ERROR: SQLExecute falló, ret=%d\n", ret);
+            odbc_extract_error("SQLExecute", stmt, SQL_HANDLE_STMT);           
+            SQLError(SQL_NULL_HENV, SQL_NULL_HDBC, stmt, sqlstate, &native, message, sizeof(message), &length);
+            fprintf(log, "SQLSTATE: %s\n", sqlstate);
+            fprintf(log, "Mensaje error: %s\n", message);
+
+
+
             fclose(log);
         }
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
@@ -195,10 +242,19 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
         fflush(log);
     }
 
-    /* Enlazar columnas de salida */
+    /* Enlazar columnas de salida 
     SQLBindCol(stmt, 1, SQL_C_CHAR, flight_id, sizeof(flight_id), &flight_id_ind);
     SQLBindCol(stmt, 2, SQL_C_CHAR, dep_time, sizeof(dep_time), &dep_time_ind);
-    SQLBindCol(stmt, 3, SQL_C_CHAR, arrival_time, sizeof(arrival_time), &arrival_time_ind);
+    SQLBindCol(stmt, 3, SQL_C_CHAR, arrival_time, sizeof(arrival_time), &arrival_time_ind);*/
+
+
+    SQLBindCol(stmt, 1, SQL_C_CHAR, flight_chain, sizeof(flight_chain), &flight_chain_ind);
+    SQLBindCol(stmt, 2, SQL_C_CHAR, original_departure, sizeof(original_departure), &original_departure_ind);
+    SQLBindCol(stmt, 3, SQL_C_CHAR, final_arrival, sizeof(final_arrival), &final_arrival_ind);
+    SQLBindCol(stmt, 4, SQL_C_CHAR, original_departure_time, sizeof(original_departure_time), &original_departure_time_ind);
+    SQLBindCol(stmt, 5, SQL_C_CHAR, final_arrival_time, sizeof(final_arrival_time), &final_arrival_time_ind);
+    SQLBindCol(stmt, 6, SQL_C_CHAR, total_duration, sizeof(total_duration), &total_duration_ind);
+    SQLBindCol(stmt, 7, SQL_C_CHAR, connection_count, sizeof(connection_count), &connection_count_ind);
 
 
     /* Leer resultados y construir texto para out_window
@@ -208,29 +264,41 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     }*/
 
     /*  Leer resultados y guardarlos en query_result_set */
-    i = 0;
-    while (i < max_rows && SQL_SUCCEEDED(SQLFetch(stmt))) {
-        /* Verificar si hay datos NULL*/
-        if (flight_id_ind == SQL_NULL_DATA) strcpy((char*)flight_id, "NULL");
-        if (dep_time_ind == SQL_NULL_DATA) strcpy((char*)dep_time, "NULL");
-        if (arrival_time_ind == SQL_NULL_DATA) strcpy((char*)arrival_time, "NULL");
+i = 0;
+while (i < max_rows && SQL_SUCCEEDED(SQLFetch(stmt))) {
+    /* Verificar si hay datos NULL para las NUEVAS variables */
+    if (flight_chain_ind == SQL_NULL_DATA) strcpy((char*)flight_chain, "NULL");
+    if (original_departure_ind == SQL_NULL_DATA) strcpy((char*)original_departure, "NULL");
+    if (final_arrival_ind == SQL_NULL_DATA) strcpy((char*)final_arrival, "NULL");
+    if (original_departure_time_ind == SQL_NULL_DATA) strcpy((char*)original_departure_time, "NULL");
+    if (final_arrival_time_ind == SQL_NULL_DATA) strcpy((char*)final_arrival_time, "NULL");
+    if (total_duration_ind == SQL_NULL_DATA) strcpy((char*)total_duration, "NULL");
+    if (connection_count_ind == SQL_NULL_DATA) strcpy((char*)connection_count, "NULL");
 
-        sprintf(buffer, "%s | %s -> %s", (char*)flight_id, (char*)dep_time, (char*)arrival_time);
+    /* Formatear la salida con las NUEVAS variables*/
+    sprintf(buffer, "%-15s | %-4s -> %-4s | %-19s | %-19s | %-14s | %s", 
+            (char*)flight_chain,
+            (char*)original_departure, 
+            (char*)final_arrival,
+            (char*)original_departure_time,
+            (char*)final_arrival_time,
+            (char*)total_duration,
+            (char*)connection_count);
 
-        len = strlen(buffer);
-        query_result_set[i] = malloc(len + 1);
-        if (query_result_set[i] != NULL) {
-            strcpy(query_result_set[i], buffer);
-
+    len = strlen(buffer);
+    query_result_set[i] = malloc(len + 1);
+    if (query_result_set[i] != NULL) {
+        strcpy(query_result_set[i], buffer);
+        
         if (log) {
-                fprintf(log, "Fila %d: %s\n", i, query_result_set[i]);
-                fflush(log);
-            }
-        } else {
-            break;
+            fprintf(log, "Fila %d: %s\n", i, query_result_set[i]);
+            fflush(log);
         }
-        i++;
+    } else {
+        break;
     }
+    i++;
+}
 
     *n_choices = i;
 
@@ -242,6 +310,8 @@ void results_search(char* from, char* to, int* n_choices, char*** choices, int m
     /* Escribir resultados en returnSQL.log*/
     result_log = fopen("returnSQL.log", "w");
     if (result_log) {
+        fprintf(result_log, "%-15s | %-4s -> %-4s | %-20s | %-20s | %-15s | %s\n", "Flight Chain", "From", "To", "First Departure", "Last Arrival", "Total Duration", "Connections");
+        fprintf(result_log, "%-15s-+-%-4s-+-%-4s-+-%-20s-+-%-20s-+-%-15s-+-%s\n", "---------------", "----", "----", "--------------------", "--------------------", "---------------", "-----------");
         for (j = 0; j < *n_choices; j++) {
             fprintf(result_log, "%s\n", query_result_set[j]);
         }
