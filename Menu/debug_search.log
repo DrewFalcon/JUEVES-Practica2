@@ -1,12 +1,12 @@
 === INICIO DEBUG ===
 Parámetros recibidos:
-from: 's      '
-to: '       '
+from: 'UUA    '
+to: 'SVO    '
 max_rows: 13
 Parámetros después de trim:
-from: 's'
-to: '       '
-date: '       '
+from: 'UUA'
+to: 'SVO'
+date: '2017-07-31'
 Tamaño de search.sql: 3068 bytes
 Consulta SQL leída:
 
@@ -81,11 +81,8 @@ FROM flight_paths fp
 WHERE fp.free_seats > 0
 ORDER BY fp.total_duration, fp.free_seats DESC;
 Conexión ODBC exitosa
-Parámetros bindeados: from='s', to='       ', date= '       '
-ERROR: SQLExecute falló, ret=-1
-SQLSTATE: 22007
-
-Mensaje error: ERROR: la sintaxis de entrada no es válida para tipo date: «       »;
-Error while executing the query
-
-test
+Parámetros bindeados: from='UUA', to='SVO', date= '2017-07-31'
+Consulta ejecutada exitosamente
+Fila 0: {23585}      | UUA -> SVO | 2017-07-31 10:35:00 | 2017-07-31 12:00:00 | 01:25:00     | 0   | 37 
+Total de filas obtenidas: 1
+=== FIN DEBUG ===
