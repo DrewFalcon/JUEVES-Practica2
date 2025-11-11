@@ -12,6 +12,8 @@
 
 #define MAX_STRING 1000
 
+
+/* Funciones privadas para facilitar el uso de results search: */
 void trim_whitespace(char *str) {
     char *end;
 
@@ -40,12 +42,25 @@ void format_date(char *date) {
     }
 }
 
+void replace_newlines(char *str) {
+    int i = 0;
+    if (str == NULL) return;
+    for (i = 0; str[i] != '\0'; i++) {
+        if (str[i] == '\n' || str[i] == '\r') {
+            str[i] = ' '; 
+        }
+    }
+}
+
+
+
 
 void results_search(char* from, char* to, char *date, int* n_choices, char*** choices, int max_length, int max_rows)
 /**here you need to do your query and fill the choices array of strings
  *
  * @param from form field from
  * @param to form field to
+ * @param date form field date
  * @param n_choices fill this with the number of results
  * @param choices fill this with the actual results
  * @param max_length output win maximum width
@@ -98,6 +113,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
             fclose(log);
         }
         free(query_result_set);
+        *n_choices = 1;
+        /*strncpy((*choices)[0], "If you are reading this, then I screwed up", max_length);*/
+        strncpy((*choices)[0], "ERROR: Somehow one of the parameters are NULL", max_length);
         return;
     }
 
@@ -122,8 +140,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
             fclose(log);
         }
         free(query_result_set);
-      *n_choices = 0;  
-      return;
+        *n_choices = 1;  
+        strncpy((*choices)[0], "ERROR: No se pudo abrir connection con la rutina SQL", max_length);
+        return;
     }
 
     fseek(file, 0, SEEK_END);
@@ -155,8 +174,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         free(select);
         fclose(file);
         free(query_result_set);
-        fprintf(stderr, "SEARCH: leyendo el archivo sql\n");
-        *n_choices = 0;
+        /*fprintf(stderr, "SEARCH: leyendo el archivo sql\n");*/
+        *n_choices = 1;
+        strncpy((*choices)[0], "ERROR: Error leyendo search.sql", max_length);
         return;
     }
 
@@ -178,7 +198,8 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         }
         free(select);
         free(query_result_set);
-        *n_choices = 0;
+        *n_choices = 1;
+        strncpy((*choices)[0], "ERROR: Conexión ODBC fallida", max_length);
         return;
     }
 
@@ -227,7 +248,7 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
 
 
     if (log) {
-        fprintf(log, "Parámetros bindeados: from='%s', to='%s'\n", from, to);
+        fprintf(log, "Parámetros bindeados: from='%s', to='%s', date= '%s'\n", from, to, date);
         fflush(log);
     }
 
@@ -239,16 +260,17 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
             odbc_extract_error("SQLExecute", stmt, SQL_HANDLE_STMT);           
             SQLError(SQL_NULL_HENV, SQL_NULL_HDBC, stmt, sqlstate, &native, message, sizeof(message), &length);
             fprintf(log, "SQLSTATE: %s\n", sqlstate);
-            fprintf(log, "Mensaje error: %s\n", message);
-
-
+            fprintf(log, "\nMensaje error: %s\n\ntest", message);
 
             fclose(log);
         }
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
         odbc_disconnect(env, dbc);
         free(query_result_set);
-        *n_choices = 0;
+
+        replace_newlines((char*)message);
+        *n_choices = 1;
+        strncpy((*choices)[0],(char*)message, max_length);
         return;
     }
 

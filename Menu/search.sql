@@ -3,7 +3,7 @@ WITH RECURSIVE flight_paths AS (
     
     SELECT 
         f.flight_id, f.departure_airport, f.arrival_airport, f.scheduled_departure, f.scheduled_arrival,
-        ARRAY[f.flight_id] AS flight_chain, (f.scheduled_arrival - f.scheduled_departure) AS total_duration, 1 AS connection_count
+        ARRAY[f.flight_id] AS flight_chain, (f.scheduled_arrival - f.scheduled_departure) AS total_duration, 0 AS connection_count,
         -- Calcular asientos libres para vuelo directo
         (SELECT COUNT(*) FROM seats s WHERE s.aircraft_code = f.aircraft_code) 
         - 
