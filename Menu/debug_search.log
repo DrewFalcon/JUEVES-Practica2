@@ -1,10 +1,10 @@
 === INICIO DEBUG ===
 Parámetros recibidos:
-from: '       '
+from: 's      '
 to: '       '
-max_rows: 7
+max_rows: 13
 Parámetros después de trim:
-from: '       '
+from: 's'
 to: '       '
 date: '       '
 Tamaño de search.sql: 3068 bytes
@@ -81,7 +81,7 @@ FROM flight_paths fp
 WHERE fp.free_seats > 0
 ORDER BY fp.total_duration, fp.free_seats DESC;
 Conexión ODBC exitosa
-Parámetros bindeados: from='       ', to='       ', date= '       '
+Parámetros bindeados: from='s', to='       ', date= '       '
 ERROR: SQLExecute falló, ret=-1
 SQLSTATE: 22007
 

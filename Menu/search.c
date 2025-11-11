@@ -55,7 +55,7 @@ void replace_newlines(char *str) {
 
 
 
-void results_search(char* from, char* to, char *date, int* n_choices, char*** choices, int max_length, int max_rows)
+int results_search(char* from, char* to, char *date, int* n_choices, char*** choices, int max_length, int max_rows)
 /**here you need to do your query and fill the choices array of strings
  *
  * @param from form field from
@@ -113,10 +113,10 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
             fclose(log);
         }
         free(query_result_set);
-        *n_choices = 1;
+        *n_choices = 0;
         /*strncpy((*choices)[0], "If you are reading this, then I screwed up", max_length);*/
-        strncpy((*choices)[0], "ERROR: Somehow one of the parameters are NULL", max_length);
-        return;
+        /*strncpy((*choices)[0], "ERROR: Somehow one of the parameters are NULL", max_length);*/
+        return -1;
     }
 
     trim_whitespace(from);
@@ -140,9 +140,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
             fclose(log);
         }
         free(query_result_set);
-        *n_choices = 1;  
-        strncpy((*choices)[0], "ERROR: No se pudo abrir connection con la rutina SQL", max_length);
-        return;
+        *n_choices = 0;  
+        /*strncpy((*choices)[0], "ERROR: No se pudo abrir connection con la rutina SQL", max_length);*/
+        return -2;
     }
 
     fseek(file, 0, SEEK_END);
@@ -163,7 +163,7 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         fclose(file);
         free(query_result_set);
         *n_choices = 0;
-        return;
+        return 0;
     }
 
     if (fread(select, 1, size, file) != (size_t)size) {
@@ -175,9 +175,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         fclose(file);
         free(query_result_set);
         /*fprintf(stderr, "SEARCH: leyendo el archivo sql\n");*/
-        *n_choices = 1;
-        strncpy((*choices)[0], "ERROR: Error leyendo search.sql", max_length);
-        return;
+        *n_choices = 0;
+        /*strncpy((*choices)[0], "ERROR: Error leyendo search.sql", max_length);*/
+        return -3;
     }
 
     select[size] = '\0';
@@ -198,9 +198,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         }
         free(select);
         free(query_result_set);
-        *n_choices = 1;
-        strncpy((*choices)[0], "ERROR: Conexión ODBC fallida", max_length);
-        return;
+        *n_choices = 0;
+        /*strncpy((*choices)[0], "ERROR: Conexión ODBC fallida", max_length);*/
+        return -4;
     }
 
     if (log) {
@@ -219,7 +219,7 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         free(select);
         free(query_result_set);
         *n_choices = 0;
-        return;
+        return 0;
     }
 
     ret = SQLPrepare(stmt, (SQLCHAR *)select, SQL_NTS);
@@ -233,7 +233,7 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         free(select);
         free(query_result_set);
         *n_choices = 0;
-        return;
+        return 0;
     }  
     
     free(select);
@@ -269,9 +269,9 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
         free(query_result_set);
 
         replace_newlines((char*)message);
-        *n_choices = 1;
+        *n_choices = 0;
         strncpy((*choices)[0],(char*)message, max_length);
-        return;
+        return -5;
     }
 
     if (log) {
@@ -385,8 +385,10 @@ while (i < max_rows && SQL_SUCCEEDED(SQLFetch(stmt))) {
     }
     free(query_result_set);
 
- if (log) {
+    if (log) {
         fprintf(log, "=== FIN DEBUG ===\n");
         fclose(log);
     }
+
+    return 0;
 }
