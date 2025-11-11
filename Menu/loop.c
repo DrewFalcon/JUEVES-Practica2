@@ -62,6 +62,7 @@ void loop(_Windows *windows, _Menus *menus,
     WINDOW *msg_win= NULL; /* pointer to msg_win */
     char * tmpStr1= NULL; /* used to read values typed in forms */
     char * tmpStr2= NULL; /* used to read values typed in forms */
+    char * tmpStr3 = NULL;
     int n_out_choices=0; /* number of printed lines in win_out window */
     int out_highlight = 0; /* line highlighted in win_out window */
     int rows_out_window = 0; /* size of win_out window */
@@ -211,7 +212,8 @@ void loop(_Windows *windows, _Menus *menus,
                 (void)form_driver(forms->search_form, REQ_VALIDATION);
                 tmpStr1 = field_buffer((forms->search_form_items)[1], 0);
                 tmpStr2 = field_buffer((forms->search_form_items)[3], 0);
-                results_search(tmpStr1, tmpStr2, &n_out_choices, & (menus->out_win_choices),
+                tmpStr3 = field_buffer((forms->search_form_items)[5], 0);
+                results_search(tmpStr1, tmpStr2, tmpStr3, &n_out_choices, & (menus->out_win_choices),
                                windows->cols_out_win-4, windows->rows_out_win-2);
                 print_out(out_win, menus->out_win_choices, n_out_choices,
                           out_highlight, windows->out_title);

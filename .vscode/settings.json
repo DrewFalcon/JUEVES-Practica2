@@ -2,6 +2,8 @@
     "files.associations": {
         "lmenu.h": "c",
         "loop.h": "c",
-        "windows.h": "c"
+        "windows.h": "c",
+        "search.h": "c",
+        "odbc.h": "c"
     }
 }

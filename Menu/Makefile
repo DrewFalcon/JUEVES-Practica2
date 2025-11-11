@@ -23,7 +23,7 @@ PG_RESTORE = pg_restore
 HEADERS = odbc.h bpass.h  lmenu.h search.h windows.h loop.h
 
 EXE = menu
-OBJ = $(EXE).o bpass.o   loop.o  search.o windows.o
+OBJ = $(EXE).o bpass.o loop.o  search.o windows.o odbc.o
 
 all : dropdb createdb restore $(EXE)
 
@@ -63,5 +63,5 @@ restore:
 
 
 test_search:
-	@echo search_sql_test: "please insert here a short description" | tee search_sql_test.log
-	@cat search_sql_test.sql | $(PSQL) | tee -a search_sql_test.log
+	@echo search: "please insert here a short description" | tee search.log
+	@cat search.sql | $(PSQL) | tee -a search.log

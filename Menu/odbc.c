@@ -27,8 +27,6 @@ void odbc_extract_error(char *fn, SQLHANDLE handle, SQLSMALLINT type) {
 int odbc_connect(SQLHENV* env, SQLHDBC* dbc) {
     SQLRETURN ret;
 
-    printf("Intentando conectar con: %s\n", CONNECTION_PARS);
-
     /* Allocate an environment handle */
     ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, env);
     if (!SQL_SUCCEEDED(ret)) {
