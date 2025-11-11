@@ -30,6 +30,16 @@ void trim_whitespace(char *str) {
     end[1] = '\0';
 }
 
+void format_date(char *date) {
+    /* Para las entradas YYYYMMDD cambiarlas a YYYY-MM-DD*/
+    if (strlen(date) == 8 && isdigit(date[0]) && isdigit(date[1]) &&  isdigit(date[2]) && isdigit(date[3]) && isdigit(date[4]) && isdigit(date[5]) && isdigit(date[6]) && isdigit(date[7])) {
+        
+        char formatted[11];
+        sprintf(formatted, "%.4s-%.2s-%.2s", date, date+4, date+6);
+        strcpy(date, formatted);
+    }
+}
+
 
 void results_search(char* from, char* to, char *date, int* n_choices, char*** choices, int max_length, int max_rows)
 /**here you need to do your query and fill the choices array of strings
@@ -94,6 +104,8 @@ void results_search(char* from, char* to, char *date, int* n_choices, char*** ch
     trim_whitespace(from);
     trim_whitespace(to);
     trim_whitespace(date);
+    format_date(date);
+
 
     if (log) {
         fprintf(log, "Parámetros después de trim:\n");

@@ -6,15 +6,15 @@ max_rows: 7
 Parámetros después de trim:
 from: 'UUA'
 to: 'SVO'
-date: '20052106'
-Tamaño de search.sql: 3067 bytes
+date: '2017-07-31'
+Tamaño de search.sql: 3068 bytes
 Consulta SQL leída:
 
 WITH RECURSIVE flight_paths AS (
     
     SELECT 
         f.flight_id, f.departure_airport, f.arrival_airport, f.scheduled_departure, f.scheduled_arrival,
-        ARRAY[f.flight_id] AS flight_chain, (f.scheduled_arrival - f.scheduled_departure) AS total_duration, 1 AS connection_count
+        ARRAY[f.flight_id] AS flight_chain, (f.scheduled_arrival - f.scheduled_departure) AS total_duration, 0 AS connection_count,
         -- Calcular asientos libres para vuelo directo
         (SELECT COUNT(*) FROM seats s WHERE s.aircraft_code = f.aircraft_code) 
         - 
@@ -82,7 +82,7 @@ WHERE fp.free_seats > 0
 ORDER BY fp.total_duration, fp.free_seats DESC;
 Conexión ODBC exitosa
 Parámetros bindeados: from='UUA', to='SVO'
-ERROR: SQLExecute falló, ret=-1
-SQLSTATE: 42601
-Mensaje error: ERROR: error de sintaxis en o cerca de «(»;
-Error while preparing parameters
+Consulta ejecutada exitosamente
+Fila 0: {23585}      | UUA -> SVO | 2017-07-31 10:35:00 | 2017-07-31 12:00:00 | 01:25:00     | 0   | 37 
+Total de filas obtenidas: 1
+=== FIN DEBUG ===
