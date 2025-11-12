@@ -67,6 +67,7 @@ void loop(_Windows *windows, _Menus *menus,
     int out_highlight = 0; /* line highlighted in win_out window */
     int rows_out_window = 0; /* size of win_out window */
     int i = 0; /* dummy variable for loops */
+    int result_err = 0; /* Integer for handling errors in results_search*/
 
     (void) curs_set(1); /* show cursor */
     menu = menus->menu;
@@ -213,12 +214,33 @@ void loop(_Windows *windows, _Menus *menus,
                 tmpStr1 = field_buffer((forms->search_form_items)[1], 0);
                 tmpStr2 = field_buffer((forms->search_form_items)[3], 0);
                 tmpStr3 = field_buffer((forms->search_form_items)[5], 0);
-                results_search(tmpStr1, tmpStr2, tmpStr3, &n_out_choices, & (menus->out_win_choices),
+                result_err = results_search(tmpStr1, tmpStr2, tmpStr3, &n_out_choices, & (menus->out_win_choices),
                                windows->cols_out_win-4, windows->rows_out_win-2);
                 print_out(out_win, menus->out_win_choices, n_out_choices,
                           out_highlight, windows->out_title);
+
                 if ((bool)DEBUG) {
-                    (void)snprintf(buffer, 128, "arg1=%s, arg2=%s",  tmpStr1, tmpStr2);
+                    if (result_err == 0)
+                    {
+                        (void)snprintf(buffer, 128, "arg1=%s, arg2=%s, arg3=%s",  tmpStr1, tmpStr2, tmpStr3);
+                    }
+                    else if (result_err == -1)
+                    {
+                        (void)snprintf(buffer, 128, "ERROR: Uno de los parametros son NULL");
+                    }else if (result_err == -2)
+                    {
+                        (void)snprintf(buffer, 128, "ERROR: No se pudo abrir connection con la rutina SQL");
+                    }else if (result_err == -3)
+                    {
+                        (void)snprintf(buffer, 128, "ERROR: Error leyendo search.sql");
+                    }else if (result_err == -4)
+                    {
+                        (void)snprintf(buffer, 128, "ERROR: Conexión ODBC fallida");
+                    }else if (result_err == -5)
+                    {
+                        (void)snprintf(buffer, 128, (menus->out_win_choices)[0]); /*Momentarily we are using ***choices as a placeholder for the error message*/
+                    }
+
                     write_msg(msg_win, buffer, -1, -1, windows->msg_title);
                 }
 
