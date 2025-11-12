@@ -2,7 +2,7 @@
 Parámetros recibidos:
 from: 'UUA    '
 to: 'SVO    '
-max_rows: 13
+max_rows: 33
 Parámetros después de trim:
 from: 'UUA'
 to: 'SVO'
