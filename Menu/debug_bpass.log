@@ -1,3 +1,11 @@
+=== INICIO DEBUG BPASS ===
+Parámetros recibidos:
+bookID: '000068 '
+max_rows: 15
+Parámetros después de trim:
+bookID: '000068'
+Tamaño de bpass.sql: 2155 bytes
+Consulta SQL leída:
 --BEGIN TRANSACTION;
 
 WITH tickets_sin_boarding AS (
@@ -69,3 +77,8 @@ WHERE ad.seat_no_disponible IS NOT NULL
 ORDER BY tsb.ticket_no, tsb.flight_id;
 
 --COMMIT TRANSACTION;
+Conexión ODBC exitosa
+Parámetro bindeado: bookID='000068'
+Consulta ejecutada exitosamente
+Total de filas obtenidas: 0
+=== FIN DEBUG BPASS ===
