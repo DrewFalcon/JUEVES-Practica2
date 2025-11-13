@@ -1,13 +1,13 @@
 === INICIO DEBUG ===
 Parámetros recibidos:
-from: 'UUA    '
+from: 'LED    '
 to: 'SVO    '
-max_rows: 33
+max_rows: -1
 Parámetros después de trim:
-from: 'UUA'
+from: 'LED'
 to: 'SVO'
-date: '2017-07-31'
-Tamaño de search.sql: 3068 bytes
+date: '2017-07-09'
+Tamaño de search.sql: 3048 bytes
 Consulta SQL leída:
 
 WITH RECURSIVE flight_paths AS (
@@ -22,7 +22,7 @@ WITH RECURSIVE flight_paths AS (
     FROM flights f
     WHERE f.departure_airport = ?
     AND f.arrival_airport = ?
-    AND DATE(f.scheduled_departure) = ?  -- Filtro por fecha
+    AND DATE(f.scheduled_departure) = ? 
     AND (f.scheduled_arrival - f.scheduled_departure) < INTERVAL '24 hours'
      -- Filtrar vuelos con asientos disponibles
       AND ((SELECT COUNT(*) FROM seats s WHERE s.aircraft_code = f.aircraft_code) 
@@ -81,8 +81,7 @@ FROM flight_paths fp
 WHERE fp.free_seats > 0
 ORDER BY fp.total_duration, fp.free_seats DESC;
 Conexión ODBC exitosa
-Parámetros bindeados: from='UUA', to='SVO', date= '2017-07-31'
+Parámetros bindeados: from='LED', to='SVO', date= '2017-07-09'
 Consulta ejecutada exitosamente
-Fila 0: {23585}      | UUA -> SVO | 2017-07-31 10:35:00 | 2017-07-31 12:00:00 | 01:25:00     | 0   | 37 
-Total de filas obtenidas: 1
+Total de filas obtenidas: 0
 === FIN DEBUG ===

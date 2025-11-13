@@ -11,7 +11,7 @@ WITH RECURSIVE flight_paths AS (
     FROM flights f
     WHERE f.departure_airport = ?
     AND f.arrival_airport = ?
-    AND DATE(f.scheduled_departure) = ?  -- Filtro por fecha
+    AND DATE(f.scheduled_departure) = ? 
     AND (f.scheduled_arrival - f.scheduled_departure) < INTERVAL '24 hours'
      -- Filtrar vuelos con asientos disponibles
       AND ((SELECT COUNT(*) FROM seats s WHERE s.aircraft_code = f.aircraft_code) 

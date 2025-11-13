@@ -8,7 +8,7 @@
 #include "windows.h"
 #include <string.h>
 /*#include <unistd.h>*/
-void results_bpass(char * bookID, int * n_choices,
+int results_bpass(char * bookID, int * n_choices,
                    char *** choices, int max_length, int max_rows);
 
 #endif /*NCOURSES_BPASS_H */

@@ -241,6 +241,11 @@ void loop(_Windows *windows, _Menus *menus,
                         (void)snprintf(buffer, 128, (menus->out_win_choices)[0]); /*Momentarily we are using ***choices as a placeholder for the error message*/
                     }
 
+                    /*if (n_out_choices == 0)
+                    {
+                        (void)snprintf(buffer, 128, "ERROR: No existe vuelos que cumplan con los requisitos");
+                    }*/
+
                     write_msg(msg_win, buffer, -1, -1, windows->msg_title);
                 }
 
@@ -257,10 +262,39 @@ void loop(_Windows *windows, _Menus *menus,
                 (void) wclear(out_win);
                 (void) form_driver(forms->bpass_form, REQ_VALIDATION);
                 tmpStr1 = field_buffer((forms->bpass_form_items)[1], 0);
-                results_bpass(tmpStr1, &n_out_choices, & (menus->out_win_choices),
+                result_err = results_bpass(tmpStr1, &n_out_choices, & (menus->out_win_choices),
                               windows->cols_out_win-4, windows->rows_out_win-2);
                 print_out(out_win, menus->out_win_choices, n_out_choices,
                           out_highlight, windows->out_title);
+
+               (void)snprintf(buffer, 128, " ");
+
+                if (result_err == -1)
+                {
+                    (void)snprintf(buffer, 128, "ERROR: Parámetro bookID es NULL");
+                }else if (result_err == -2)
+                {
+                    (void)snprintf(buffer, 128, "ERROR: No se pudo abrir bpass.sql");
+                }else if (result_err == -3)
+                {
+                    (void)snprintf(buffer, 128, "ERROR: Error leyendo bpass.sql");
+                }else if (result_err == -4)
+                {
+                    (void)snprintf(buffer, 128, "ERROR: Conexión ODBC fallida");
+                }else if (result_err == -5)
+                {
+                    (void)snprintf(buffer, 128, (menus->out_win_choices)[0]); /*Momentarily we are using ***choices as a placeholder for the error message*/               
+                }
+
+                if (n_out_choices == 0)
+                {
+                    (void)snprintf(buffer, 128, "ERROR: No existe Book_ref que cumpla con los requisitos");
+                }
+                
+               
+                write_msg(msg_win, buffer, -1, -1, windows->msg_title);
+                
+                
             }
             else if ((choice == BPASS) && focus == (FOCUS_RIGHT)) {
                 write_msg(msg_win, (menus->out_win_choices)[out_highlight],

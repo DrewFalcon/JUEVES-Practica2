@@ -1,3 +1,5 @@
+--BEGIN TRANSACTION;
+
 WITH tickets_sin_boarding AS (
     SELECT 
         t.ticket_no,
@@ -33,7 +35,26 @@ asientos_disponibles AS (
          ORDER BY s.seat_no
          LIMIT 1) AS seat_no_disponible
     FROM tickets_sin_boarding tsb
+),
+-- Insertar boarding passes y obtener los datos insertados
+inserted_passes AS (
+    INSERT INTO boarding_passes (ticket_no, flight_id, boarding_no, seat_no)
+    SELECT 
+        tsb.ticket_no,
+        tsb.flight_id,
+        COALESCE((
+            SELECT MAX(bp2.boarding_no) 
+            FROM boarding_passes bp2 
+            WHERE bp2.flight_id = tsb.flight_id
+        ), 0) + ROW_NUMBER() OVER (PARTITION BY tsb.flight_id ORDER BY tsb.ticket_no),
+        ad.seat_no_disponible
+    FROM tickets_sin_boarding tsb
+    JOIN asientos_disponibles ad ON tsb.ticket_no = ad.ticket_no 
+        AND tsb.flight_id = ad.flight_id
+    WHERE ad.seat_no_disponible IS NOT NULL
+    RETURNING ticket_no, flight_id, seat_no
 )
+-- Seleccionar los datos para mostrar
 SELECT 
     tsb.ticket_no,
     tsb.passenger_name,
@@ -46,3 +67,5 @@ JOIN asientos_disponibles ad ON tsb.ticket_no = ad.ticket_no
     AND tsb.flight_id = ad.flight_id
 WHERE ad.seat_no_disponible IS NOT NULL
 ORDER BY tsb.ticket_no, tsb.flight_id;
+
+--COMMIT TRANSACTION;
