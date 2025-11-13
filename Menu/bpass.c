@@ -164,7 +164,6 @@ int results_bpass(char* bookID,
     /* Conexión */
     ret = odbc_connect(&env, &dbc);
     if (!SQL_SUCCEEDED(ret)) {
-        fprintf(stderr, "BPASS: conexión fallida.\n");
         if (log) {
             fprintf(log, "ERROR: Conexión ODBC fallida\n");
             fclose(log);
