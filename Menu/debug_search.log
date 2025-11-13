@@ -1,3 +1,14 @@
+=== INICIO DEBUG ===
+Parámetros recibidos:
+from: 'LED    '
+to: 'SVO    '
+max_rows: -1
+Parámetros después de trim:
+from: 'LED'
+to: 'SVO'
+date: '2017-07-09'
+Tamaño de search.sql: 3048 bytes
+Consulta SQL leída:
 
 WITH RECURSIVE flight_paths AS (
     
@@ -69,3 +80,8 @@ SELECT DISTINCT
 FROM flight_paths fp
 WHERE fp.free_seats > 0
 ORDER BY fp.total_duration, fp.free_seats DESC;
+Conexión ODBC exitosa
+Parámetros bindeados: from='LED', to='SVO', date= '2017-07-09'
+Consulta ejecutada exitosamente
+Total de filas obtenidas: 0
+=== FIN DEBUG ===
