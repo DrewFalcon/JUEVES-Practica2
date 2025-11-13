@@ -82,7 +82,7 @@ int results_search(char* from, char* to, char *date, int* n_choices, char*** cho
     SQLCHAR message[1024];
     SQLSMALLINT length;
     SQLINTEGER native;
-    char buffer[512];
+    char buffer[1024];
 
     SQLCHAR flight_chain[256], original_departure[16], final_arrival[16];
     SQLCHAR original_departure_time[64], final_arrival_time[64];
